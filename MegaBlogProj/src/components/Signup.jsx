@@ -16,15 +16,21 @@ function Signup() {
 
     const create= async(data) => {
         setError("")
+        console.log("Signup form data →", data); // For debugging
         try {
-            const userData = await authService.createAccount(data)
-            if(userData){
-                const userData= await authService.getCurrentUser()
-                if(userData) dispatch(login(userData));
+                // Create user account
+            const user = await authService.createAccount(data);
+            if(user){
+                  // Wait a short delay to ensure session is ready
+                await new Promise((res) => setTimeout(res, 300));
+
+                // Fetch logged-in user data
+                const currentUser = await authService.getCurrentUser();
+                if(currentUser) dispatch(login(currentUser));
                 navigate("/")
             }
         } catch (error) {
-            setError(error.message)
+            setError(error.message || "Signup failed. Please try again.");
         }
     }
 
@@ -50,6 +56,7 @@ function Signup() {
             <form onSubmit={handleSubmit(create)}>
                 <div className='space-y-5'>
                     <Input
+                    name ="name"
                     label="Full Name:"
                     placeholder="Enter your full name"
                     {...register("name", {
@@ -57,19 +64,21 @@ function Signup() {
                     })}
                     />
                     <Input
-                    label="Email: "
+                    name ="email"
+                    label="Email:"
                     placeholder="Enter your email"
                     type="email"
                     {...register("email", {
                         required: true,
-                        validate: {
-                         matchPatern: (value) => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
-                            "Email address must be a valid address",
-                        }
+                        pattern: {
+                            value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                            message: "Email address must be valid",
+                        },
                     })}
                     />
                     <Input
-                    label="Password: "
+                    name ="password"
+                    label="Password:"
                     type="password"
                     placeholder="Enter your password"
                     {...register("password", {

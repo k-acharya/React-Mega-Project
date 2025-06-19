@@ -13,21 +13,26 @@ function App() {
   const [loading, setLoading]= useState(true)
   const dispatch= useDispatch()
 
-  useEffect(() => {
-
-    authService.getCurrentUser()
-    .then((userData) => {
-      // console.log("User data from Appwrite:", userData);
-      if(userData){
-        dispatch(login({userData}))
-      }else{
-        dispatch(logout())
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const userData = await authService.getCurrentUser();
+      if (userData) {
+        dispatch(login({ userData }));
+      } else {
+        dispatch(logout());
       }
+    } catch (error) {
+      console.log("Guest user or session expired — skipping getCurrentUser");
+      dispatch(logout());
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    })
-    .finally(() => setLoading(false))
+  fetchUser();
+}, []);
 
-  }, [])
 
 
   // return !loading ? (
